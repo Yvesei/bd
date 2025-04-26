@@ -2,17 +2,17 @@ import mysql.connector
 
 conn = mysql.connector.connect(
     host="localhost",       
-    user="root",            
-    password="password",    
-    database="your_database" 
+    user="user",            
+    password="pass",    
+    database="TP_SecuBDD_GHOUDANE_OUCHTA" 
 )
 
 cursor = conn.cursor()
 
 data = [
-    ("Fluffy", "Harold", "chat", "f", "2013--02-04", None),
+    ("Fluffy", "Harold", "chat", "f", "2013-02-04", None),
     ("Claws", "Gwen", "chat", "m", "2014-03-17", None),
-    ("Buffy", "Harod", "chien", "f", "2019-0513", None),
+    ("Buffy", "Harod", "chien", "f", "2019-05-13", None),
     ("Fang", "Benny", "chien", "m", "2010-08-27", None),
     ("Bowser", "Diane", "chien", "m", "2018-08-31", "2021-07-29"),
     ("Chirpy", "Gwen", "oiseau", "f", "2018-09-11", None),
@@ -22,7 +22,7 @@ data = [
 ]
 
 insert_query = """
-INSERT INTO animals (name, owner, species, gender, birth, death)
+INSERT INTO animaux (nom, proprietaire, espece, genre, naissance, mort)
 VALUES (%s, %s, %s, %s, %s, %s)
 """
 
