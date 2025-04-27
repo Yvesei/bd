@@ -273,53 +273,259 @@ finally:
 ```
 
 
-18 / Créez un script python "question18.py" (vous avez droit à mysql.connector en librairie non standard) pour insérer le listing suivant :
+### 19 / Affichez l'âge des animaux
 
-Fluffy	Harold	chat	f	'2013-02-04'	\N
-Claws	Gwen 	chat 	m	'2014-03-17'	\N
-Buffy	Harod	chien	f	'2019-05-13'	\N
-Fang	Benny	chien	m	'2010-08-27'	\N
-Bowser	Diane	chien	m	'2018-08-31'	'2021-07-29'
-Chirpy	Gwen	oiseau	f	'2018-09-11'	\N
-Whistler	Gwen	oiseau	\N	'2017-12-09'	\N
-Slim	Benny	serpent	m	'2016-04-29'	\N
-Puffball	Diane	hamster	f	'2019-03-30'	\N
+```
+mysql> SELECT nom, TIMESTAMPDIFF(YEAR, naissance, CURDATE()) AS age FROM animaux;
++----------+------+
+| nom      | age  |
++----------+------+
+| Fluffy   |   12 |
+| Claws    |   11 |
+| Buffy    |    5 |
+| Fang     |   14 |
+| Bowser   |    6 |
+| Chirpy   |    6 |
+| Whistler |    7 |
+| Slim     |    8 |
+| Puffball |    6 |
++----------+------+
+9 rows in set (0.001 sec)
+```
 
-19 / Affichez l'âge des animaux
-20 / Expliquez le résultat de cette commande : SELECT 1 IS NULL, 1 IS NOT NULL;
-21 / Affichez le nom des animaux dont le nom contient un b ou un P avec une expression régulière
-22 / Modifiez le mot de passe de votre utilisateur créé au début avec la valeur "mysql"
-23 / Donnez une requête sur la table animaux affichant les tuples en version hachées (SHA2)
-24 / Il existe un script fourni avec MySQL et MariaDB permettant de sécuriser une installation fraîche du serveur de base de données, quel est-il et que fait-il ?
-25 / Comment feriez-vous pour chiffrer une cellule sensible d'une de vos tables de base de données ?
-26 / Faites un dump de votre base de test dans un fichier "dump.sql"
 
-27 / On souhaite stocker des informations en base concernant des employés d'une entreprise, entre autre leur Identifiant unique, et leur Salaire. Mais leur salaire doit rester secret et seule une personne autorisée doit pouvoir accéder à cette information, qui doit être protégée contre un attaquant disposant des droits d'administration sur la machine serveur hébergeant la base.
-La contrainte est cependant qu'il doit rester possible pour une personne autorisée de comparer les salaires de deux employés, et d'obtenir la somme des salaires ; et ce, sans compromettre le secret (le salaire ne doit pas transiter en clair).
+### 20 / Expliquez le résultat de cette commande : SELECT 1 IS NULL, 1 IS NOT NULL;
 
-Définissez une base pour cela. Trouvez et utilisez des primitives de chiffrement homomorphe (ne les implémentez pas vous-même) permettant de comparer des entiers chiffrés, et d'additionner des entiers chiffrés.
-Indice pour le premier cas : il s'agit de trouver un algorithme préservant la relation d'ordre — aka. Order Revealing Encryption — (afin que les requêtes sur intervalles soient permises).
+Cette commande évalue des expressions logiques :
 
-Donnez l'implémentation en python du middleware et d'une application cliente de cette base illustrant le chiffrement, la récupération, et le déchiffrement des informations de la base.
-Votre projet doit présenter entre autre deux scripts client.py et server.py
+1 IS NULL: Vérifie si la valeur 1 est NULL. Résultat : 0 (Faux), car 1 n'est pas NULL.
 
-Le script server.py affiche à son lancement l'ip et le port par lesquels on peut le joindre. Il communique avec le SGBD et est considéré comme faisant partie du périmètre accessible par l'attaquant.
-Il permet d'exécuter :
-- la comparaison de deux employés sur leur salaire chiffré
-- la somme chiffrée des salaires
-Il est essentiel d'utiliser les ressources du serveur pour exécuter ces opérations, il est interdit par exemple de retourner la liste des salaires chiffrés au client pour qu'ensuite les salaires soient déchiffrés côté client afin d'en produire la somme.
+1 IS NOT NULL: Vérifie si la valeur 1 n'est pas NULL. Résultat : 1 (Vrai), car 1 n'est pas NULL.
 
-Le script client.py est hors périmètre de l'attaquant. Lancé avec en paramètres l'ip et le port du serveur, il propose un menu permettant :
-- d'ajouter un enregistrement à la base
-- d'afficher le contenu de la base
-- de comparer deux employés sur leur salaire
-- d'obtenir la somme des salaires
+```
+mysql> SELECT 1 IS NULL, 1 IS NOT NULL;
++-----------+---------------+
+| 1 IS NULL | 1 IS NOT NULL |
++-----------+---------------+
+|         0 |             1 |
++-----------+---------------+
+1 row in set (0.002 sec)
+```
+### 21 / Affichez le nom des animaux dont le nom contient un b ou un P avec une expression régulière
+```
+mysql> SELECT nom FROM animaux WHERE nom REGEXP 'b|P';
++----------+
+| nom      |
++----------+
+| Buffy    |
+| Bowser   |
+| Chirpy   |
+| Puffball |
++----------+
+4 rows in set (0.091 sec)
+```
+### 22 / Modifiez le mot de passe de votre utilisateur créé au début avec la valeur "mysql"
+```
+mysql> ALTER USER 'user'@'localhost' IDENTIFIED BY 'mysql';
+Query OK, 0 rows affected (0.047 sec)
 
-Toute la partie chiffrement/déchiffrement doit être transparente pour l'utilisateur, à aucun moment on ne lui demande de comprendre le chiffrement en question ou de gérer des clés (similaire au fait que vous n'avez pas besoin de comprendre HTTPS pour afficher une page web).
+mysql> FLUSH PRIVILEGES;
+Query OK, 0 rows affected, 1 warning (0.017 sec)
+```
+### 23 / Donnez une requête sur la table animaux affichant les tuples en version hachées (SHA2)
+```
+mysql> SELECT SHA2(CONCAT(nom, proprietaire, espece, genre, naissance, IFNULL(mort, '')), 256) AS hashed_data FROM animaux;
++------------------------------------------------------------------+
+| hashed_data                                                      |
++------------------------------------------------------------------+
+| a05f27fd08f9ad45d9b7930df1c50c0ee235da9cf2c597ae08668190d028f59f |
+| 6eed096ab3731ba0d6581dd45349783bb3f1634578d757045cf042a1b65dd80f |
+| ece029254a77e478892a2f0639e3ef3135f7097e826755d29a08b00c0d57f282 |
+| df3ffceae13931475fbb872df04deae52643c593b75a629ddf3bd676111c013e |
+| 2bb879a961f7ea53a5216b7167ed75b0e0eb4f990a0a651c5a228e87a0f15abe |
+| d8fd2472b973fea1030942209912b68939f35bd7a058d9b83ec0ab31ef670717 |
+| NULL                                                             |
+| a5b0f7fd0f6deadfbc684a1d8e7277006848c0e0489152e1f233e48aea8e2b9e |
+| 04e64f6ebfeef8ba0701352d4c3acc67c1edab4fc037c09634b9420ef032a13c |
++------------------------------------------------------------------+
+9 rows in set (0.023 sec)
+```
+### 24 / Il existe un script fourni avec MySQL et MariaDB permettant de sécuriser une installation fraîche du serveur de base de données, quel est-il et que fait-il ?
 
-28 / Implémentez une attaque statistique permettant à un utilisateur illégitime d'approximer l'information chiffrée. Expliquez votre méthodologie pour créer un jeu de données dont la répartition est publique, puis pour retrouver avec approximation les informations de ce jeu de données à partir de ce modèle de répartition et de la suite ordonnée et chiffrée de ces informations.
-Lien utile : https://blog.cryptographyengineering.com/2019/02/11/attack-of-the-week-searchable-encryption-and-the-ever-expanding-leakage-function/
+Le script fourni est mysql_secure_installation.
 
+Ce qu'il fait :
+Configure un mot de passe pour l'utilisateur root.
+
+Supprime les utilisateurs anonymes.
+
+Désactive les connexions root distantes.
+
+Supprime la base de données de test par défaut.
+
+Recharge les tables de privilèges pour appliquer les modifications.
+
+### 25 / Comment feriez-vous pour chiffrer une cellule sensible d'une de vos tables de base de données ?
+
+Pour chiffrer une cellule, on peut   utiliser les fonctions de chiffrement SQL natives comme AES_ENCRYPT :
+```
+UPDATE animaux
+SET proprietaire = AES_ENCRYPT(proprietaire, 'secret_key')
+WHERE nom = 'Fluffy';
+```
+Pour déchiffrer la valeur :
+```
+SELECT AES_DECRYPT(proprietaire, 'secret_key') AS proprietaire
+FROM animaux
+WHERE nom = 'Fluffy';
+```
+
+
+### 26 / Faites un dump de votre base de test dans un fichier "dump.sql"
+```
+❯ mysqldump -u root -p TP_SecuBDD_GHOUDANE_OUCHTA > dump.sql
+Enter password:
+
+
+❯ ls
+dump.sql
+
+❯ cat dump.sql
+-- MySQL dump 10.13  Distrib 9.3.0, for macos13.7 (x86_64)
+--
+-- Host: localhost    Database: TP_SecuBDD_GHOUDANE_OUCHTA
+-- ------------------------------------------------------
+-- Server version	9.2.0
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `animaux`
+--
+
+DROP TABLE IF EXISTS `animaux`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `animaux` (
+  `nom` varchar(20) DEFAULT NULL,
+  `proprietaire` varchar(20) DEFAULT NULL,
+  `espece` varchar(20) DEFAULT NULL,
+  `genre` char(1) DEFAULT NULL,
+  `naissance` date DEFAULT NULL,
+  `mort` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `animaux`
+--
+
+LOCK TABLES `animaux` WRITE;
+/*!40000 ALTER TABLE `animaux` DISABLE KEYS */;
+INSERT INTO `animaux` VALUES ('Fluffy','Harold','chat','f','2013-02-04',NULL),('Claws','Gwen','chat','m','2014-03-17',NULL),('Buffy','Harod','chien','f','2019-05-13',NULL),('Fang','Benny','chien','m','2010-08-27',NULL),('Bowser','Diane','chien','m','2018-08-31','2021-07-29'),('Chirpy','Gwen','oiseau','f','2018-09-11',NULL),('Whistler','Gwen','oiseau',NULL,'2017-12-09',NULL),('Slim','Benny','serpent','m','2016-04-29',NULL),('Puffball','Diane','hamster','f','2019-03-30',NULL);
+/*!40000 ALTER TABLE `animaux` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `persons`
+--
+
+DROP TABLE IF EXISTS `persons`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `persons` (
+  `id` smallint unsigned NOT NULL AUTO_INCREMENT,
+  `name` char(60) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `persons`
+--
+
+LOCK TABLES `persons` WRITE;
+/*!40000 ALTER TABLE `persons` DISABLE KEYS */;
+INSERT INTO `persons` VALUES (1,'Antonio Paz'),(2,'Lilliana Angelovska');
+/*!40000 ALTER TABLE `persons` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `shirts`
+--
+
+DROP TABLE IF EXISTS `shirts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shirts` (
+  `id` smallint unsigned NOT NULL AUTO_INCREMENT,
+  `style` enum('t-shirt','polo','dress') NOT NULL,
+  `color` enum('red','blue','orange','white','black') NOT NULL,
+  `owner` smallint unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `owner` (`owner`),
+  CONSTRAINT `shirts_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `persons` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `shirts`
+--
+
+LOCK TABLES `shirts` WRITE;
+/*!40000 ALTER TABLE `shirts` DISABLE KEYS */;
+INSERT INTO `shirts` VALUES (1,'polo','blue',1),(2,'dress','white',1),(3,'t-shirt','blue',1),(4,'dress','orange',2),(5,'polo','red',2),(6,'dress','blue',2),(7,'t-shirt','white',2);
+/*!40000 ALTER TABLE `shirts` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `shop`
+--
+
+DROP TABLE IF EXISTS `shop`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop` (
+  `article` int(4) unsigned zerofill NOT NULL DEFAULT '0000',
+  `dealer` char(20) NOT NULL DEFAULT '',
+  `price` double(16,2) NOT NULL DEFAULT '0.00',
+  PRIMARY KEY (`article`,`dealer`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `shop`
+--
+
+LOCK TABLES `shop` WRITE;
+/*!40000 ALTER TABLE `shop` DISABLE KEYS */;
+INSERT INTO `shop` VALUES (0001,'A',3.45),(0001,'B',3.99),(0002,'A',10.99),(0003,'B',1.45),(0003,'C',1.69),(0003,'D',1.25),(0004,'D',19.95);
+/*!40000 ALTER TABLE `shop` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2025-04-27  1:42:38
+
+~                                                                                                                  01:42:44
+❯
+```
 
 
 
